@@ -2,23 +2,43 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { User } from './entities/user.entity';
+import { calculateAge } from '../common/utils/calculate-age';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
   ) {}
-
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const newUser = this.userRepository.create(createUserDto);
-    return this.userRepository.save(newUser);
+    const newUser = this.usersRepository.create(createUserDto);
+    return this.usersRepository.save(newUser);
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll() {
+    const users = await this.usersRepository.find({
+      select: {
+        id: true,
+        name: true,
+        about: true,
+        birthdate: true,
+        city: true,
+        gender: true,
+        avatar: true,
+      },
+      order: { id: 'ASC' },
+    });
+    return users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      about: user.about,
+      city: user.city,
+      gender: user.gender,
+      avatar: user.avatar,
+      age: calculateAge(user.birthdate),
+    }));
   }
 
   findOne(id: number) {
@@ -26,7 +46,7 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const user = await this.userRepository.findOneBy({ email });
+    const user = await this.usersRepository.findOneBy({ email });
     return user;
   }
 
