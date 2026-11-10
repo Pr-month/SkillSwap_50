@@ -57,4 +57,8 @@ export class UsersService {
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
+
+  async updateRefreshToken(id: number, tokenHash: string | null) {
+    await this.usersRepository.update(id, { refreshToken: tokenHash });
+  }
 }
