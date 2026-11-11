@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { Request } from 'express';
 import { JwtPayload } from './auth.types';
+import { AccessTokenGuard } from './access-token.guard';
 
 @Controller('auth')
 export class AuthController {
