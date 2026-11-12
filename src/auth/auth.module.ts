@@ -12,12 +12,9 @@ import { AuthController } from './auth.controller';
   imports: [
     ConfigModule.forFeature(jwtConfig),
     PassportModule,
-    // Перевели на асинхронную регистрацию
     JwtModule.registerAsync({
-      inject: [jwtConfig.KEY], // Внедряем именно токен нашего конфига
-      useFactory: (
-        config: ConfigType<typeof jwtConfig>,
-      ): JwtModuleOptions => ({
+      inject: [jwtConfig.KEY],
+      useFactory: (config: ConfigType<typeof jwtConfig>): JwtModuleOptions => ({
         secret: config.accessSecret,
         signOptions: {
           expiresIn: config.accessExpiresIn,
