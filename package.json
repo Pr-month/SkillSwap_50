@@ -66,9 +66,10 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
-    "moduleNameMapper": {
-      "^@nestjs/jwt$": "<rootDir>/auth/guards/__mocks__/nestjs-jwt.mock.js"
-    },
+  "moduleNameMapper": {
+    "^@nestjs/jwt$": "<rootDir>/auth/guards/__mocks__/nestjs-jwt.mock.js",
+    "^@nestjs/config$": "<rootDir>/auth/guards/__mocks__/nestjs-config.mock.js"
+  },
     "collectCoverageFrom": ["**/*.(t|j)s"],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"

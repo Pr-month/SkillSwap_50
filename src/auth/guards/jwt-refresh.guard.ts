@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 
@@ -13,7 +14,10 @@ export interface RefreshRequest extends Request {
 
 @Injectable()
 export class JwtRefreshGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService, // <-- Добавили
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<RefreshRequest>();
@@ -25,7 +29,8 @@ export class JwtRefreshGuard implements CanActivate {
 
     try {
       await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_REFRESH_SECRET,
+        // <-- Берем секрет из конфига
+        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
       });
       request.refreshToken = token;
       return true;

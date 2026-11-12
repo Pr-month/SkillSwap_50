@@ -1,4 +1,5 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
@@ -14,7 +15,12 @@ const makeContext = (
 describe('JwtAuthGuard', () => {
   const verifyAsync = jest.fn();
   const jwtService = { verifyAsync } as unknown as JwtService;
-  const guard = new JwtAuthGuard(jwtService);
+
+  // Добавили мок ConfigService
+  const getOrThrow = jest.fn().mockReturnValue('test-access-secret');
+  const configService = { getOrThrow } as unknown as ConfigService;
+
+  const guard = new JwtAuthGuard(jwtService, configService);
 
   beforeEach(() => jest.clearAllMocks());
 
@@ -34,7 +40,9 @@ describe('JwtAuthGuard', () => {
     verifyAsync.mockResolvedValue({ sub: 42 });
     const ctx = makeContext({ authorization: 'Bearer valid.token' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    expect(verifyAsync).toHaveBeenCalledWith('valid.token');
+    expect(verifyAsync).toHaveBeenCalledWith('valid.token', {
+      secret: 'test-access-secret', // Проверяем, что взялся из мока конфига
+    });
   });
 
   it('невалидный токен → 401', async () => {

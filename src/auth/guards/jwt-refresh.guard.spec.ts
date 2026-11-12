@@ -1,4 +1,5 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { JwtRefreshGuard } from './jwt-refresh.guard';
 
@@ -15,7 +16,12 @@ const makeContext = (
 describe('JwtRefreshGuard', () => {
   const verifyAsync = jest.fn();
   const jwtService = { verifyAsync } as unknown as JwtService;
-  const guard = new JwtRefreshGuard(jwtService);
+
+  // Добавили мок ConfigService
+  const getOrThrow = jest.fn().mockReturnValue('test-refresh-secret');
+  const configService = { getOrThrow } as unknown as ConfigService;
+
+  const guard = new JwtRefreshGuard(jwtService, configService);
 
   beforeEach(() => jest.clearAllMocks());
 
@@ -30,7 +36,7 @@ describe('JwtRefreshGuard', () => {
     const ctx = makeContext({ authorization: 'Bearer refresh.token' });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
     expect(verifyAsync).toHaveBeenCalledWith('refresh.token', {
-      secret: process.env.JWT_REFRESH_SECRET,
+      secret: 'test-refresh-secret', // Проверяем, что взялся из мока конфига
     });
   });
 
