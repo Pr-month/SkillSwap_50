@@ -7,6 +7,7 @@ import { AccessTokenStrategy } from './access-token.strategy';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { JwtModule } from '@nestjs/jwt';
         expiresIn: Number(process.env.JWT_ACCESS_EXPIRES_IN ?? 900),
       },
     }),
+    UsersModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, AccessTokenGuard, AccessTokenStrategy],
