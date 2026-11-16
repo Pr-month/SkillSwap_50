@@ -51,6 +51,7 @@ export class UsersService {
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
+    void updateUserDto;
     return `This action updates a #${id} user`;
   }
 
