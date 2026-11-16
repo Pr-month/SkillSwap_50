@@ -7,6 +7,7 @@ import { AccessTokenGuard } from './access-token.guard';
 import { AccessTokenStrategy } from './access-token.strategy';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AuthController } from './auth.controller';
         },
       }),
     }),
+    UsersModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, AccessTokenGuard, AccessTokenStrategy],
