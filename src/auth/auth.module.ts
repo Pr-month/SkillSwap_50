@@ -1,26 +1,28 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigType } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
-import jwtConfig from '../config/jwt.config';
-import { AccessTokenGuard } from './access-token.guard';
-import { AccessTokenStrategy } from './access-token.strategy';
+import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
+import jwtConfig from '../config/jwt.config'; // Из будущего PR
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard'; // Из будущего PR
 
 @Module({
   imports: [
     ConfigModule.forFeature(jwtConfig),
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_ACCESS_SECRET,
-      signOptions: {
-        expiresIn: Number(process.env.JWT_ACCESS_EXPIRES_IN ?? 900),
-      },
+    JwtModule.registerAsync({
+      inject: [jwtConfig.KEY],
+      useFactory: (config: ConfigType<typeof jwtConfig>): JwtModuleOptions => ({
+        secret: config.accessSecret,
+        signOptions: {
+          expiresIn: config.accessExpiresIn,
+        },
+      }),
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AccessTokenGuard, AccessTokenStrategy],
-  exports: [AccessTokenGuard],
+  providers: [AuthService, JwtRefreshGuard], // Добавили гард
+  exports: [JwtRefreshGuard],
 })
 export class AuthModule {}
