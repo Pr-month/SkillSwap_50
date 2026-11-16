@@ -12,9 +12,9 @@ export class UsersService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
   ) {}
-  create(createUserDto: CreateUserDto) {
-    void createUserDto;
-    return 'This action adds a new user';
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const newUser = this.usersRepository.create(createUserDto);
+    return this.usersRepository.save(newUser);
   }
 
   async findAll() {
@@ -45,6 +45,11 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    const user = await this.usersRepository.findOneBy({ email });
+    return user;
+  }
+
   update(id: number, updateUserDto: UpdateUserDto) {
     void updateUserDto;
     return `This action updates a #${id} user`;
@@ -52,5 +57,9 @@ export class UsersService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  async updateRefreshToken(id: number, tokenHash: string | null) {
+    await this.usersRepository.update(id, { refreshToken: tokenHash });
   }
 }

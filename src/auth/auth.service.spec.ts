@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
+import { UsersService } from '../users/users.service';
 import { UserRole } from '../users/users.enums';
 
 jest.mock('bcrypt', () => ({
@@ -19,7 +20,12 @@ describe('AuthService', () => {
   const signAsync = jest.fn();
   const jwtService = { signAsync } as unknown as JwtService;
 
-  const service = new AuthService(dataSource, jwtService);
+  const service = new AuthService(dataSource, jwtService, {} as UsersService, {
+    accessSecret: 'access-test-secret',
+    refreshSecret: 'refresh-test-secret',
+    accessExpiresIn: 900,
+    refreshExpiresIn: 604800,
+  });
 
   beforeEach(() => jest.clearAllMocks());
 
