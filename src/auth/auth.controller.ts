@@ -17,6 +17,8 @@ import { Request } from 'express';
 import { JwtPayload } from './auth.types';
 import { AccessTokenGuard } from './access-token.guard';
 
+import { JwtRefreshGuard, RefreshRequest } from './guards/jwt-refresh.guard';
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -44,5 +46,11 @@ export class AuthController {
   @UseGuards(AccessTokenGuard)
   async logout(@Req() req: Request & { user: JwtPayload }) {
     return this.authService.logout(req.user.sub);
+  }
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtRefreshGuard)
+  refresh(@Req() req: RefreshRequest) {
+    return this.authService.refresh(req.refreshUserId!, req.refreshToken!);
   }
 }

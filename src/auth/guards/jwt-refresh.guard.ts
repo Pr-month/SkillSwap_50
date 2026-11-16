@@ -10,6 +10,7 @@ import { Request } from 'express';
 
 export interface RefreshRequest extends Request {
   refreshToken?: string;
+  refreshUserId?: number;
 }
 
 @Injectable()
@@ -28,11 +29,18 @@ export class JwtRefreshGuard implements CanActivate {
     }
 
     try {
-      await this.jwtService.verifyAsync(token, {
-        // <-- Берем секрет из конфига
-        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
-      });
+      const payload = await this.jwtService.verifyAsync<{ sub: number }>(
+        token,
+        {
+          // <-- Берем секрет из конфига
+          secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+        },
+      );
+      if (!Number.isSafeInteger(payload.sub) || payload.sub <= 0) {
+        throw new UnauthorizedException();
+      }
       request.refreshToken = token;
+      request.refreshUserId = payload.sub;
       return true;
     } catch {
       throw new UnauthorizedException('Refresh token недействителен');

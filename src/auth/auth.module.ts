@@ -9,6 +9,8 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
+
 @Module({
   imports: [
     ConfigModule.forFeature(jwtConfig),
@@ -25,7 +27,12 @@ import { UsersModule } from '../users/users.module';
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, AccessTokenGuard, AccessTokenStrategy],
+  providers: [
+    AuthService,
+    AccessTokenGuard,
+    AccessTokenStrategy,
+    JwtRefreshGuard,
+  ],
   exports: [AccessTokenGuard],
 })
 export class AuthModule {}

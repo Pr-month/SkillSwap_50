@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { createHash, randomUUID } from 'node:crypto';
 import { ConfigType } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import jwtConfig from '../config/jwt.config';
@@ -70,7 +71,7 @@ export class AuthService {
       password: hashedPassword,
     });
     const tokens = await this.generateTokens(user);
-    const hashedTokens = await bcrypt.hash(tokens.refreshToken, 10);
+    const hashedTokens = this.hashRefreshToken(tokens.refreshToken);
     await this.usersService.updateRefreshToken(user.id, hashedTokens);
 
     const safeUser: Partial<User> = { ...user };
@@ -97,9 +98,42 @@ export class AuthService {
     const refreshToken = await this.jwtService.signAsync(payload, {
       secret: this.jwtSettings.refreshSecret,
       expiresIn: this.jwtSettings.refreshExpiresIn,
+      jwtid: randomUUID(),
     });
 
     return { accessToken, refreshToken };
+  }
+
+  async refresh(userId: number, rawRefreshToken: string) {
+    const repository = this.dataSource.getRepository(User);
+    const user = await repository.findOneBy({ id: userId });
+    const storedHash = user?.refreshToken;
+
+    if (!user || !storedHash) {
+      throw new UnauthorizedException('Доступ запрещен');
+    }
+
+    const matches = storedHash.startsWith('sha256:')
+      ? storedHash === this.hashRefreshToken(rawRefreshToken)
+      : await bcrypt.compare(rawRefreshToken, storedHash);
+    if (!matches) {
+      throw new UnauthorizedException('Доступ запрещен');
+    }
+
+    const tokens = await this.generateTokens(user);
+    const { affected } = await repository.update(
+      { id: user.id, refreshToken: storedHash },
+      { refreshToken: this.hashRefreshToken(tokens.refreshToken) },
+    );
+    if (affected !== 1) {
+      throw new UnauthorizedException('Доступ запрещен');
+    }
+
+    return tokens;
+  }
+
+  private hashRefreshToken(token: string): string {
+    return 'sha256:' + createHash('sha256').update(token).digest('hex');
   }
 
   async logout(id: number) {
