@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { calculateAge } from '../common/utils/calculate-age';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -68,5 +74,34 @@ export class UsersService {
 
   async updateRefreshToken(id: number, tokenHash: string | null) {
     await this.usersRepository.update(id, { refreshToken: tokenHash });
+  }
+
+  async updatePassword(
+    id: number,
+    updatePasswordDto: UpdatePasswordDto,
+  ): Promise<void> {
+    const user = await this.usersRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    const isMatch = await bcrypt.compare(
+      updatePasswordDto.currentPassword,
+      user.password,
+    );
+
+    if (!isMatch) {
+      throw new BadRequestException('Введен неверный пароль');
+    }
+
+    const updatedPassword = await bcrypt.hash(
+      updatePasswordDto.newPassword,
+      10,
+    );
+
+    const updatedUser = { ...user, password: updatedPassword };
+
+    await this.usersRepository.save(updatedUser);
   }
 }

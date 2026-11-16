@@ -15,6 +15,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AccessTokenGuard } from '../auth/access-token.guard';
 import { Request } from 'express';
 import { JwtPayload } from '../auth/auth.types';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('users')
 export class UsersController {
@@ -42,6 +43,15 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.usersService.update(req.user.sub, updateUserDto);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Patch('me/password')
+  updatePassword(
+    @Req() req: Request & { user: JwtPayload },
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    return this.usersService.updatePassword(req.user.sub, updatePasswordDto);
   }
 
   @Delete(':id')
