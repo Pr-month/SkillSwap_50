@@ -4,14 +4,18 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
-
 import { RegisterDto } from './dto/register.dto';
+import { Request } from 'express';
+import { JwtPayload } from './auth.types';
+import { AccessTokenGuard } from './access-token.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -34,5 +38,11 @@ export class AuthController {
   )
   login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
     return this.authService.login(dto);
+  }
+
+  @Post('logout')
+  @UseGuards(AccessTokenGuard)
+  async logout(@Req() req: Request & { user: JwtPayload }) {
+    return this.authService.logout(req.user.sub);
   }
 }
