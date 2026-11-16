@@ -2,10 +2,14 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigType } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
-import jwtConfig from '../config/jwt.config'; // Из будущего PR
+import jwtConfig from '../config/jwt.config';
+import { AccessTokenGuard } from './access-token.guard';
+import { AccessTokenStrategy } from './access-token.strategy';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { JwtRefreshGuard } from './guards/jwt-refresh.guard'; // Из будущего PR
+import { UsersModule } from '../users/users.module';
+
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 
 @Module({
   imports: [
@@ -20,9 +24,15 @@ import { JwtRefreshGuard } from './guards/jwt-refresh.guard'; // Из будущ
         },
       }),
     }),
+    UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtRefreshGuard], // Добавили гард
-  exports: [JwtRefreshGuard],
+  providers: [
+    AuthService,
+    AccessTokenGuard,
+    AccessTokenStrategy,
+    JwtRefreshGuard,
+  ],
+  exports: [AccessTokenGuard],
 })
 export class AuthModule {}

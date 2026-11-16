@@ -5,11 +5,17 @@ import {
   Body,
   Patch,
   Param,
+  Req,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AccessTokenGuard } from '../auth/access-token.guard';
+import { Request } from 'express';
+import { JwtPayload } from '../auth/auth.types';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('users')
 export class UsersController {
@@ -30,9 +36,22 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @UseGuards(AccessTokenGuard)
+  @Patch('me')
+  update(
+    @Req() req: Request & { user: JwtPayload },
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.usersService.update(req.user.sub, updateUserDto);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Patch('me/password')
+  updatePassword(
+    @Req() req: Request & { user: JwtPayload },
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    return this.usersService.updatePassword(req.user.sub, updatePasswordDto);
   }
 
   @Delete(':id')

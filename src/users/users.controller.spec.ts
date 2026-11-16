@@ -4,6 +4,10 @@ import { UsersService } from './users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 
+jest.mock('../auth/access-token.guard', () => ({
+  AccessTokenGuard: class AccessTokenGuard {},
+}));
+
 describe('UsersController', () => {
   let controller: UsersController;
 
