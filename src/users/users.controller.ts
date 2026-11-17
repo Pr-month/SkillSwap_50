@@ -31,6 +31,12 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('me')
+  @UseGuards(AccessTokenGuard)
+  findMe(@Req() req: Request & { user: JwtPayload }) {
+    return this.usersService.findMe(req.user.sub);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
