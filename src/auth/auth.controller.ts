@@ -11,8 +11,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { RegisterDto } from './dto/register.dto';
-import { Request } from 'express';
-import { JwtPayload } from './auth.types';
+import type { AuthRequest } from './auth.types';
 import { AccessTokenGuard } from './access-token.guard';
 
 import { JwtRefreshGuard, RefreshRequest } from './guards/jwt-refresh.guard';
@@ -34,7 +33,7 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(AccessTokenGuard)
-  async logout(@Req() req: Request & { user: JwtPayload }) {
+  async logout(@Req() req: AuthRequest) {
     return this.authService.logout(req.user.sub);
   }
   @Post('refresh')
