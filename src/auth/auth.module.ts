@@ -16,6 +16,7 @@ import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
     ConfigModule.forFeature(jwtConfig),
     PassportModule,
     JwtModule.registerAsync({
+      imports: [ConfigModule.forFeature(jwtConfig)],
       inject: [jwtConfig.KEY],
       useFactory: (config: ConfigType<typeof jwtConfig>): JwtModuleOptions => ({
         secret: config.accessSecret,
