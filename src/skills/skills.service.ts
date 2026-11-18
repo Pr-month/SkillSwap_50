@@ -1,13 +1,10 @@
 import {
   ForbiddenException,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsOrder, Repository } from 'typeorm';
-import { unlink } from 'node:fs/promises';
-import { basename, join } from 'node:path';
 import { Skill } from './entities/skill.entity';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { PaginationQueryDto, SortOrder } from './dto/pagination-query.dto';
@@ -16,8 +13,6 @@ import { UpdateSkillDto } from './dto/update-skill.dto';
 
 @Injectable()
 export class SkillsService {
-  private readonly logger = new Logger(SkillsService.name);
-
   constructor(
     @InjectRepository(Skill)
     private readonly skillsRepository: Repository<Skill>,
@@ -131,36 +126,8 @@ export class SkillsService {
       throw new ForbiddenException('You can only delete your own skills');
     }
 
-    await this.deleteUploadedImages(skill.images);
-    const deleted = await this.skillsRepository.remove(skill);
-
-    return { id: deleted.id };
-  }
-
-  private async deleteUploadedImages(images: string[]): Promise<void> {
-    if (!images || images.length === 0) {
-      return;
-    }
-
-    const uploadsDir = join(process.cwd(), 'public', 'uploads');
-
-    await Promise.all(
-      images.map(async (image) => {
-        const filename = basename(image);
-        if (!filename) {
-          return;
-        }
-        try {
-          await unlink(join(uploadsDir, filename));
-        } catch (error) {
-          const code = (error as NodeJS.ErrnoException).code;
-          if (code !== 'ENOENT') {
-            this.logger.warn(
-              `Failed to delete image file ${filename}: ${String(error)}`,
-            );
-          }
-        }
-      }),
-    );
+    // Image URLs can be shared by different skills and do not establish file ownership.
+    await this.skillsRepository.remove(skill);
+    return { id };
   }
 }
