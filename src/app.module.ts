@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import appConfig from './config/app.config';
 import { dbConfig, TDbConfig } from './config/db.config';
 import { UsersModule } from './users/users.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UsersModule } from './users/users.module';
     }),
     UsersModule,
     AuthModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
