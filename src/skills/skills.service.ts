@@ -1,9 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsOrder, Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { CreateSkillDto } from './dto/create-skill.dto';
+import { UpdateSkillDto } from './dto/update-skill.dto';
 import { SkillResponseDto } from './dto/skill-response.dto';
 
 @Injectable()
@@ -53,6 +58,51 @@ export class SkillsService {
       skillImages: savedSkill.skillImages,
       authorId: savedSkill.authorId,
       likedByUserIds: savedSkill.likedByUserIds,
+    };
+  }
+
+  async findOne(id: number): Promise<SkillResponseDto> {
+    const skill = await this.skillsRepository.findOne({ where: { id } });
+
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+
+    return {
+      id: skill.id,
+      name: skill.name,
+      description: skill.description,
+      skillImages: skill.skillImages,
+      authorId: skill.authorId,
+      likedByUserIds: skill.likedByUserIds,
+    };
+  }
+
+  async update(
+    id: number,
+    userId: number,
+    updateSkillDto: UpdateSkillDto,
+  ): Promise<SkillResponseDto> {
+    const skill = await this.skillsRepository.findOne({ where: { id } });
+
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+
+    if (skill.authorId !== userId) {
+      throw new ForbiddenException('Можно обновлять только свои навыки');
+    }
+
+    const updatedSkill = { ...skill, ...updateSkillDto };
+    await this.skillsRepository.save(updatedSkill);
+
+    return {
+      id: updatedSkill.id,
+      name: updatedSkill.name,
+      description: updatedSkill.description,
+      skillImages: updatedSkill.skillImages,
+      authorId: updatedSkill.authorId,
+      likedByUserIds: updatedSkill.likedByUserIds,
     };
   }
 }

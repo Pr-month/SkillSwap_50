@@ -2,6 +2,9 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -11,6 +14,7 @@ import { SkillsService } from './skills.service';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { PaginatedSkillsResponseDto } from './dto/skill-response.dto';
 import { CreateSkillDto } from './dto/create-skill.dto';
+import { UpdateSkillDto } from './dto/update-skill.dto';
 import { AccessTokenGuard } from '../auth/access-token.guard';
 import { Request } from 'express';
 import { JwtPayload } from '../auth/auth.types';
@@ -33,6 +37,18 @@ export class SkillsController {
     };
   }
 
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const skill = await this.skillsService.findOne(id);
+
+    return {
+      skills: [skill],
+      total: 1,
+      offset: 0,
+      limit: 1,
+    };
+  }
+
   @Post()
   @UseGuards(AccessTokenGuard)
   async create(
@@ -43,6 +59,27 @@ export class SkillsController {
       ...createSkillDto,
       authorId: req.user.sub,
     });
+
+    return {
+      skills: [skill],
+      total: 1,
+      offset: 0,
+      limit: 1,
+    };
+  }
+
+  @Patch(':id')
+  @UseGuards(AccessTokenGuard)
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user: JwtPayload },
+    @Body() updateSkillDto: UpdateSkillDto,
+  ): Promise<PaginatedSkillsResponseDto> {
+    const skill = await this.skillsService.update(
+      id,
+      req.user.sub,
+      updateSkillDto,
+    );
 
     return {
       skills: [skill],
