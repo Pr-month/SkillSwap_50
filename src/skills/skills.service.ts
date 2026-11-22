@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsOrder, Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { CreateSkillDto } from './dto/create-skill.dto';
 import { SkillResponseDto } from './dto/skill-response.dto';
 
 @Injectable()
@@ -38,6 +39,20 @@ export class SkillsService {
         likedByUserIds: skill.likedByUserIds,
       })),
       total,
+    };
+  }
+
+  async create(createSkillDto: CreateSkillDto): Promise<SkillResponseDto> {
+    const skill = this.skillsRepository.create(createSkillDto);
+    const savedSkill = await this.skillsRepository.save(skill);
+
+    return {
+      id: savedSkill.id,
+      name: savedSkill.name,
+      description: savedSkill.description,
+      skillImages: savedSkill.skillImages,
+      authorId: savedSkill.authorId,
+      likedByUserIds: savedSkill.likedByUserIds,
     };
   }
 }
