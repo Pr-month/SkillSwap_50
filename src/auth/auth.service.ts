@@ -44,7 +44,12 @@ export class AuthService {
       throw new UnauthorizedException('Неверный email или пароль');
     }
 
-    const payload: JwtPayload = { sub: user.id };
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
     const accessToken = await this.jwtService.signAsync(payload);
 
     return {
@@ -102,8 +107,9 @@ export class AuthService {
   }
 
   async generateTokens(user: User) {
-    const payload = {
+    const payload: JwtPayload = {
       sub: user.id,
+      email: user.email,
       role: user.role,
     };
     const accessToken = await this.jwtService.signAsync(payload, {
