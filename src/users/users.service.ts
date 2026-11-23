@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -57,15 +58,38 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const changes: UpdateUserDto = {};
+
+    if (updateUserDto.name !== undefined) {
+      changes.name = updateUserDto.name;
+    }
+    if (updateUserDto.about !== undefined) {
+      changes.about = updateUserDto.about;
+    }
+    if (updateUserDto.birthdate !== undefined) {
+      changes.birthdate = updateUserDto.birthdate;
+    }
+    if (updateUserDto.city !== undefined) {
+      changes.city = updateUserDto.city;
+    }
+    if (updateUserDto.gender !== undefined) {
+      changes.gender = updateUserDto.gender;
+    }
+    if (updateUserDto.avatar !== undefined) {
+      changes.avatar = updateUserDto.avatar;
+    }
+
+    if (Object.keys(changes).length > 0) {
+      await this.usersRepository.update({ id }, changes);
+    }
+
     const user = await this.usersRepository.findOneBy({ id });
 
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    const updatedUser = { ...user, ...updateUserDto };
-
-    return this.usersRepository.save(updatedUser);
+    return user;
   }
 
   remove(id: number) {
@@ -100,8 +124,15 @@ export class UsersService {
       10,
     );
 
-    const updatedUser = { ...user, password: updatedPassword };
+    const result = await this.usersRepository.update(
+      { id, password: user.password },
+      { password: updatedPassword },
+    );
 
-    await this.usersRepository.save(updatedUser);
+    if (result.affected === 0) {
+      throw new ConflictException(
+        'Пароль уже изменён. Повторите запрос с текущим паролем',
+      );
+    }
   }
 }
