@@ -13,8 +13,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AccessTokenGuard } from '../auth/access-token.guard';
-import { Request } from 'express';
-import { JwtPayload } from '../auth/auth.types';
+import type { AuthRequest } from '../auth/auth.types';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('users')
@@ -33,7 +32,7 @@ export class UsersController {
 
   @Get('me')
   @UseGuards(AccessTokenGuard)
-  findMe(@Req() req: Request & { user: JwtPayload }) {
+  findMe(@Req() req: AuthRequest) {
     return this.usersService.findMe(req.user.sub);
   }
 
@@ -44,17 +43,14 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @Patch('me')
-  update(
-    @Req() req: Request & { user: JwtPayload },
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  update(@Req() req: AuthRequest, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(req.user.sub, updateUserDto);
   }
 
   @UseGuards(AccessTokenGuard)
   @Patch('me/password')
   updatePassword(
-    @Req() req: Request & { user: JwtPayload },
+    @Req() req: AuthRequest,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     return this.usersService.updatePassword(req.user.sub, updatePasswordDto);
