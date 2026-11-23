@@ -10,7 +10,7 @@ import { UsersService } from '../users/users.service';
 import jwtConfig from '../config/jwt.config';
 import { RegisterDto } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryFailedError } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../users/entities/user.entity';
 import { JwtPayload } from './auth.types';
@@ -44,7 +44,12 @@ export class AuthService {
       throw new UnauthorizedException('Неверный email или пароль');
     }
 
-    const payload: JwtPayload = { sub: user.id };
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
     const accessToken = await this.jwtService.signAsync(payload);
 
     return {
@@ -66,10 +71,26 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-    const user = await this.usersService.create({
-      ...registerDto,
-      password: hashedPassword,
-    });
+
+    let user: User;
+
+    try {
+      user = await this.usersService.create({
+        ...registerDto,
+        password: hashedPassword,
+      });
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error.driverError as { code?: string }).code === '23505'
+      ) {
+        throw new ConflictException(
+          'Пользователь с таким email уже существует',
+        );
+      }
+      throw error;
+    }
+
     const tokens = await this.generateTokens(user);
     const hashedTokens = this.hashRefreshToken(tokens.refreshToken);
     await this.usersService.updateRefreshToken(user.id, hashedTokens);
@@ -86,8 +107,9 @@ export class AuthService {
   }
 
   async generateTokens(user: User) {
-    const payload = {
+    const payload: JwtPayload = {
       sub: user.id,
+      email: user.email,
       role: user.role,
     };
     const accessToken = await this.jwtService.signAsync(payload, {

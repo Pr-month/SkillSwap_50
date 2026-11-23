@@ -1,22 +1,41 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Category } from '../../categories/entities/category.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('skills')
 export class Skill {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  name!: string;
+  @Column({ type: 'varchar', length: 100 })
+  title!: string;
 
-  @Column({ type: 'text' })
-  description!: string;
+  @Column({ type: 'text', nullable: true })
+  description!: string | null;
 
-  @Column({ type: 'simple-array', nullable: true })
-  skillImages!: string[] | null;
+  @ManyToOne(() => Category, (category) => category.skills, {
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
+  category!: Category;
 
-  @Column({ type: 'int' })
-  authorId!: number;
+  @Column('simple-array', { default: '' })
+  images!: string[];
 
-  @Column({ type: 'simple-array', nullable: true })
-  likedByUserIds!: string[] | null;
+  @ManyToOne(() => User, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  owner!: User;
+
+  @ManyToMany(() => User)
+  @JoinTable()
+  favoritedByUsers!: User[];
 }

@@ -1,26 +1,7 @@
-import {
-  IsArray,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { OmitType, PartialType } from '@nestjs/mapped-types';
+import { CreateSkillDto } from './create-skill.dto';
 
-export class UpdateSkillDto {
-  @IsOptional()
-  @IsString()
-  @MinLength(1)
-  @MaxLength(255)
-  name?: string;
-
-  @IsOptional()
-  @IsString()
-  @MinLength(10)
-  @MaxLength(1000)
-  description?: string;
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  skillImages?: string[];
-}
+export class UpdateSkillDto extends PartialType(
+  OmitType(CreateSkillDto, ['categoryId'] as const),
+  { skipNullProperties: false },
+) {}

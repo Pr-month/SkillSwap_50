@@ -1,7 +1,7 @@
 export class SkillResponseDto {
   id!: number;
   name!: string;
-  description!: string;
+  description!: string | null;
   skillImages!: string[] | null;
   authorId!: number;
   likedByUserIds!: string[] | null;
