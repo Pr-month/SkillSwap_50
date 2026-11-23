@@ -25,8 +25,14 @@ export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
   @Post()
-  create(@Body() createSkillDto: CreateSkillDto) {
-    return this.skillsService.create(createSkillDto);
+  @UseGuards(AccessTokenGuard)
+  async create(
+    @Req() req: Request & { user: JwtPayload },
+    @Body() createSkillDto: CreateSkillDto,
+  ): Promise<PaginatedSkillsResponseDto> {
+    const skill = await this.skillsService.create(createSkillDto, req.user.sub);
+
+    return { skills: [skill], total: 1, offset: 0, limit: 1 };
   }
 
   @Get()
@@ -44,13 +50,26 @@ export class SkillsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.skillsService.findOne(+id);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<PaginatedSkillsResponseDto> {
+    const skill = await this.skillsService.findOne(id);
+    return { skills: [skill], total: 1, offset: 0, limit: 1 };
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSkillDto: UpdateSkillDto) {
-    return this.skillsService.update(+id, updateSkillDto);
+  @UseGuards(AccessTokenGuard)
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user: JwtPayload },
+    @Body() updateSkillDto: UpdateSkillDto,
+  ): Promise<PaginatedSkillsResponseDto> {
+    const skill = await this.skillsService.update(
+      id,
+      req.user.sub,
+      updateSkillDto,
+    );
+    return { skills: [skill], total: 1, offset: 0, limit: 1 };
   }
 
   @Delete(':id')

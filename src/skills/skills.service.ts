@@ -23,8 +23,20 @@ export class SkillsService {
     private readonly skillsRepository: Repository<Skill>,
   ) {}
 
-  create(createSkillDto: CreateSkillDto) {
-    return 'This action adds a new skill';
+  async create(
+    { name, description, skillImages, categoryId }: CreateSkillDto,
+    ownerId: number,
+  ): Promise<SkillResponseDto> {
+    const skill = this.skillsRepository.create({
+      title: name,
+      description,
+      images: skillImages ?? [],
+      category: { id: categoryId },
+      owner: { id: ownerId },
+      favoritedByUsers: [],
+    });
+
+    return this.toResponse(await this.skillsRepository.save(skill));
   }
 
   async findAll(paginationQuery: PaginationQueryDto): Promise<{
@@ -51,24 +63,58 @@ export class SkillsService {
     });
 
     return {
-      skills: skills.map((skill) => ({
-        id: skill.id,
-        name: skill.title,
-        description: skill.description,
-        skillImages: skill.images,
-        authorId: skill.owner.id,
-        likedByUserIds: skill.favoritedByUsers.map(({ id }) => String(id)),
-      })),
+      skills: skills.map((skill) => this.toResponse(skill)),
       total,
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} skill`;
+  private toResponse(skill: Skill): SkillResponseDto {
+    return {
+      id: skill.id,
+      name: skill.title,
+      description: skill.description,
+      skillImages: skill.images,
+      authorId: skill.owner.id,
+      likedByUserIds: skill.favoritedByUsers.map(({ id }) => String(id)),
+    };
   }
 
-  update(id: number, updateSkillDto: UpdateSkillDto) {
-    return `This action updates a #${id} skill`;
+  async findOne(id: number): Promise<SkillResponseDto> {
+    return this.toResponse(await this.findSkill(id));
+  }
+
+  async update(
+    id: number,
+    ownerId: number,
+    { name, description, skillImages }: UpdateSkillDto,
+  ): Promise<SkillResponseDto> {
+    const skill = await this.findSkill(id);
+    if (skill.owner.id !== ownerId) {
+      throw new ForbiddenException('Можно обновлять только свои навыки');
+    }
+
+    const changes = {
+      ...(name !== undefined && { title: name }),
+      ...(description !== undefined && { description }),
+      ...(skillImages !== undefined && { images: skillImages ?? [] }),
+    };
+    if (Object.keys(changes).length === 0) {
+      return this.toResponse(skill);
+    }
+
+    await this.skillsRepository.update({ id }, changes);
+    return this.findOne(id);
+  }
+
+  private async findSkill(id: number): Promise<Skill> {
+    const skill = await this.skillsRepository.findOne({
+      where: { id },
+      relations: { owner: true, favoritedByUsers: true },
+    });
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+    return skill;
   }
 
   async remove(id: number, userId: number): Promise<{ id: number }> {

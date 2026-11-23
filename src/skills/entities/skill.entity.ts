@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  JoinTable,
   ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -28,12 +29,13 @@ export class Skill {
   @Column('simple-array', { default: '' })
   images!: string[];
 
-  @ManyToOne(() => User, (user) => user.skills, {
+  @ManyToOne(() => User, {
     nullable: false,
     onDelete: 'CASCADE',
   })
   owner!: User;
 
-  @ManyToMany(() => User, (user) => user.favoriteSkills)
+  @ManyToMany(() => User)
+  @JoinTable()
   favoritedByUsers!: User[];
 }
