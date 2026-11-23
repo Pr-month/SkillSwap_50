@@ -1,23 +1,39 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
   Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { SkillsService } from './skills.service';
+import { CreateSkillDto } from './dto/create-skill.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { PaginatedSkillsResponseDto } from './dto/skill-response.dto';
-import { CreateSkillDto } from './dto/create-skill.dto';
+import { UpdateSkillDto } from './dto/update-skill.dto';
 import { AccessTokenGuard } from '../auth/access-token.guard';
-import { Request } from 'express';
 import { JwtPayload } from '../auth/auth.types';
 
 @Controller('skills')
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
+
+  @Post()
+  @UseGuards(AccessTokenGuard)
+  async create(
+    @Req() req: Request & { user: JwtPayload },
+    @Body() createSkillDto: CreateSkillDto,
+  ): Promise<PaginatedSkillsResponseDto> {
+    const skill = await this.skillsService.create(createSkillDto, req.user.sub);
+
+    return { skills: [skill], total: 1, offset: 0, limit: 1 };
+  }
 
   @Get()
   async findAll(
@@ -33,22 +49,22 @@ export class SkillsController {
     };
   }
 
-  @Post()
-  @UseGuards(AccessTokenGuard)
-  async create(
-    @Req() req: Request & { user: JwtPayload },
-    @Body() createSkillDto: CreateSkillDto,
-  ): Promise<PaginatedSkillsResponseDto> {
-    const skill = await this.skillsService.create({
-      ...createSkillDto,
-      authorId: req.user.sub,
-    });
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.skillsService.findOne(+id);
+  }
 
-    return {
-      skills: [skill],
-      total: 1,
-      offset: 0,
-      limit: 1,
-    };
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateSkillDto: UpdateSkillDto) {
+    return this.skillsService.update(+id, updateSkillDto);
+  }
+
+  @Delete(':id')
+  @UseGuards(AccessTokenGuard)
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user: JwtPayload },
+  ): Promise<{ id: number }> {
+    return this.skillsService.remove(id, req.user.sub);
   }
 }

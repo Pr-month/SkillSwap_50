@@ -4,6 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import jwtConfig from '../config/jwt.config';
 import { JwtPayload } from './auth.types';
+import { UserRole } from '../users/users.enums';
 
 @Injectable()
 export class AccessTokenStrategy extends PassportStrategy(
@@ -26,16 +27,21 @@ export class AccessTokenStrategy extends PassportStrategy(
   }
 
   validate(payload: Partial<JwtPayload> & { exp?: number }): JwtPayload {
-    const { sub, exp } = payload;
+    const { sub, email, role, exp } = payload;
+
     if (
       typeof sub !== 'number' ||
       !Number.isSafeInteger(sub) ||
       sub <= 0 ||
+      typeof email !== 'string' ||
+      email.trim() === '' ||
+      (role !== UserRole.USER && role !== UserRole.ADMIN) ||
       typeof exp !== 'number' ||
       !Number.isFinite(exp)
     ) {
       throw new UnauthorizedException();
     }
-    return { sub };
+
+    return { sub, email, role };
   }
 }
