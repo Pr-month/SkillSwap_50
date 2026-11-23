@@ -1,7 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { Request } from 'express';
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
+import { AccessTokenGuard } from '../auth/access-token.guard';
+import { JwtPayload } from '../auth/auth.types';
 
 @Controller('skills')
 export class SkillsController {
@@ -28,7 +42,11 @@ export class SkillsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.skillsService.remove(+id);
+  @UseGuards(AccessTokenGuard)
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request & { user: JwtPayload },
+  ): Promise<{ id: number }> {
+    return this.skillsService.remove(id, req.user.sub);
   }
 }
