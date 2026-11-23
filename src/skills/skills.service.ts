@@ -5,11 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsOrder, Repository } from 'typeorm';
 import { unlink } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { Skill } from './entities/skill.entity';
 import { CreateSkillDto } from './dto/create-skill.dto';
+import { PaginationQueryDto, SortOrder } from './dto/pagination-query.dto';
+import { SkillResponseDto } from './dto/skill-response.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 
 @Injectable()
@@ -25,8 +27,40 @@ export class SkillsService {
     return 'This action adds a new skill';
   }
 
-  findAll() {
-    return `This action returns all skills`;
+  async findAll(paginationQuery: PaginationQueryDto): Promise<{
+    skills: SkillResponseDto[];
+    total: number;
+  }> {
+    const {
+      offset = 0,
+      limit = 10,
+      sortBy = 'id',
+      order = SortOrder.ASC,
+    } = paginationQuery;
+    const sortColumn = sortBy === 'name' ? 'title' : sortBy;
+    const orderConfig: FindOptionsOrder<Skill> = {
+      [sortColumn]: order,
+      id: sortColumn === 'id' ? order : SortOrder.ASC,
+    };
+    const [skills, total] = await this.skillsRepository.findAndCount({
+      skip: offset,
+      take: limit,
+      order: orderConfig,
+      relations: { owner: true, favoritedByUsers: true },
+      relationLoadStrategy: 'query',
+    });
+
+    return {
+      skills: skills.map((skill) => ({
+        id: skill.id,
+        name: skill.title,
+        description: skill.description,
+        skillImages: skill.images,
+        authorId: skill.owner.id,
+        likedByUserIds: skill.favoritedByUsers.map(({ id }) => String(id)),
+      })),
+      total,
+    };
   }
 
   findOne(id: number) {

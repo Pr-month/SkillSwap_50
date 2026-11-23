@@ -7,12 +7,15 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { PaginatedSkillsResponseDto } from './dto/skill-response.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { AccessTokenGuard } from '../auth/access-token.guard';
 import { JwtPayload } from '../auth/auth.types';
@@ -27,8 +30,17 @@ export class SkillsController {
   }
 
   @Get()
-  findAll() {
-    return this.skillsService.findAll();
+  async findAll(
+    @Query() paginationQuery: PaginationQueryDto,
+  ): Promise<PaginatedSkillsResponseDto> {
+    const { skills, total } = await this.skillsService.findAll(paginationQuery);
+
+    return {
+      skills,
+      total,
+      offset: paginationQuery.offset ?? 0,
+      limit: paginationQuery.limit ?? 10,
+    };
   }
 
   @Get(':id')
