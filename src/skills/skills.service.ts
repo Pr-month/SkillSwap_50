@@ -23,8 +23,20 @@ export class SkillsService {
     private readonly skillsRepository: Repository<Skill>,
   ) {}
 
-  create(createSkillDto: CreateSkillDto) {
-    return 'This action adds a new skill';
+  async create(
+    { name, description, skillImages, categoryId }: CreateSkillDto,
+    ownerId: number,
+  ): Promise<SkillResponseDto> {
+    const skill = this.skillsRepository.create({
+      title: name,
+      description,
+      images: skillImages ?? [],
+      category: { id: categoryId },
+      owner: { id: ownerId },
+      favoritedByUsers: [],
+    });
+
+    return this.toResponse(await this.skillsRepository.save(skill));
   }
 
   async findAll(paginationQuery: PaginationQueryDto): Promise<{
@@ -51,15 +63,19 @@ export class SkillsService {
     });
 
     return {
-      skills: skills.map((skill) => ({
-        id: skill.id,
-        name: skill.title,
-        description: skill.description,
-        skillImages: skill.images,
-        authorId: skill.owner.id,
-        likedByUserIds: skill.favoritedByUsers.map(({ id }) => String(id)),
-      })),
+      skills: skills.map((skill) => this.toResponse(skill)),
       total,
+    };
+  }
+
+  private toResponse(skill: Skill): SkillResponseDto {
+    return {
+      id: skill.id,
+      name: skill.title,
+      description: skill.description,
+      skillImages: skill.images,
+      authorId: skill.owner.id,
+      likedByUserIds: skill.favoritedByUsers.map(({ id }) => String(id)),
     };
   }
 

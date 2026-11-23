@@ -25,8 +25,14 @@ export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
   @Post()
-  create(@Body() createSkillDto: CreateSkillDto) {
-    return this.skillsService.create(createSkillDto);
+  @UseGuards(AccessTokenGuard)
+  async create(
+    @Req() req: Request & { user: JwtPayload },
+    @Body() createSkillDto: CreateSkillDto,
+  ): Promise<PaginatedSkillsResponseDto> {
+    const skill = await this.skillsService.create(createSkillDto, req.user.sub);
+
+    return { skills: [skill], total: 1, offset: 0, limit: 1 };
   }
 
   @Get()
