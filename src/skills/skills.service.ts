@@ -96,7 +96,7 @@ export class SkillsService {
     const changes = {
       ...(name !== undefined && { title: name }),
       ...(description !== undefined && { description }),
-      ...(skillImages !== undefined && { images: skillImages }),
+      ...(skillImages !== undefined && { images: skillImages ?? [] }),
     };
     if (Object.keys(changes).length === 0) {
       return this.toResponse(skill);
