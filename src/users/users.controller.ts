@@ -30,6 +30,12 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('me')
+  @UseGuards(AccessTokenGuard)
+  findMe(@Req() req: AuthRequest) {
+    return this.usersService.findMe(req.user.sub);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);

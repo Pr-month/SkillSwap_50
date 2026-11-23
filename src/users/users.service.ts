@@ -51,6 +51,35 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
+  async findMe(id: number) {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        about: true,
+        birthdate: true,
+        city: true,
+        gender: true,
+        avatar: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      about: user.about,
+      city: user.city,
+      gender: user.gender,
+      avatar: user.avatar,
+      age: calculateAge(user.birthdate),
+    };
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     const user = await this.usersRepository.findOneBy({ email });
     return user;
