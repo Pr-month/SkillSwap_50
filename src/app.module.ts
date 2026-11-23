@@ -9,6 +9,7 @@ import appConfig from './config/app.config';
 import { dbConfig, TDbConfig } from './config/db.config';
 import { UsersModule } from './users/users.module';
 import { AllExceptionsFilter } from './common/filters/all-exception.filter';
+import { SkillsModule } from './skills/skills.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AllExceptionsFilter } from './common/filters/all-exception.filter';
     }),
     UsersModule,
     AuthModule,
+    SkillsModule,
   ],
   controllers: [AppController],
   providers: [
