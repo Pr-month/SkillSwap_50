@@ -3,7 +3,10 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Req,
@@ -48,8 +51,14 @@ export class RequestController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRequestDto: UpdateRequestDto) {
-    return this.requestsService.update(+id, updateRequestDto);
+  @UseGuards(AccessTokenGuard)
+  @HttpCode(HttpStatus.OK)
+  updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateRequestDto,
+    @Req() req: ExpressRequest & { user: JwtPayload },
+  ) {
+    return this.requestsService.updateStatus(req.user.sub, id, dto.status);
   }
 
   @Delete(':id')
