@@ -1,6 +1,7 @@
 import { Exclude } from 'class-transformer';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { UserGender, UserRole } from '../users.enums';
+import { Request } from '../../request/entities/request.entity';
 
 @Entity('users')
 export class User {
@@ -34,6 +35,12 @@ export class User {
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role!: UserRole;
+
+  @OneToMany(() => Request, (request) => request.sender)
+  sentRequests!: Request[];
+
+  @OneToMany(() => Request, (request) => request.receiver)
+  receivedRequests!: Request[];
 
   @Exclude()
   @Column({ type: 'varchar', nullable: true })
