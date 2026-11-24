@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { CreateRequestDto } from './dto/create-request.dto';
-import { UpdateRequestDto } from './dto/update-request.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
+import { Request } from './entities/request.entity';
+import { RequestStatus } from './request.enums';
 
 @Injectable()
 export class RequestService {
+  constructor(
+    @InjectRepository(Request)
+    private readonly requestsRepository: Repository<Request>,
+  ) {}
+
   create(createRequestDto: CreateRequestDto) {
     return 'This action adds a new request';
   }
@@ -22,5 +29,20 @@ export class RequestService {
 
   remove(id: number) {
     return `This action removes a #${id} request`;
+  }
+
+  findIncoming(userId: number): Promise<Request[]> {
+    return this.requestsRepository.find({
+      where: {
+        receiver: { id: userId },
+        status: In([RequestStatus.PENDING, RequestStatus.IN_PROGRESS]),
+      },
+      relations: {
+        sender: true,
+        offeredSkill: true,
+        requestedSkill: true,
+      },
+      order: { createdAt: 'DESC' },
+    });
   }
 }
