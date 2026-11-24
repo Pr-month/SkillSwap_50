@@ -26,12 +26,13 @@ export class RequestService {
   ) {}
 
   async create(userId: number, dto: CreateRequestDto): Promise<Request> {
-    if (dto.receiverId === userId) {
-      throw new BadRequestException('Cannot send request to yourself');
+    if (dto.offeredSkillId === dto.requestedSkillId) {
+      throw new BadRequestException(
+        'Offered and requested skills must be different',
+      );
     }
 
-    const [receiver, offeredSkill, requestedSkill] = await Promise.all([
-      this.usersRepository.findOne({ where: { id: dto.receiverId } }),
+    const [offeredSkill, requestedSkill] = await Promise.all([
       this.skillsRepository.findOne({
         where: { id: dto.offeredSkillId },
         relations: { owner: true },
@@ -42,9 +43,6 @@ export class RequestService {
       }),
     ]);
 
-    if (!receiver) {
-      throw new NotFoundException('Receiver not found');
-    }
     if (!offeredSkill) {
       throw new NotFoundException('Offered skill not found');
     }
@@ -55,8 +53,11 @@ export class RequestService {
     if (offeredSkill.owner.id !== userId) {
       throw new ForbiddenException('You can only offer your own skill');
     }
-    if (requestedSkill.owner.id !== dto.receiverId) {
-      throw new ForbiddenException('Requested skill must belong to receiver');
+
+    const receiver = requestedSkill.owner;
+
+    if (receiver.id === userId) {
+      throw new BadRequestException('Cannot send request to yourself');
     }
 
     const request = this.requestsRepository.create({
