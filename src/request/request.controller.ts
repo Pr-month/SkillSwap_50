@@ -62,7 +62,12 @@ export class RequestController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.requestsService.remove(+id);
+  @UseGuards(AccessTokenGuard)
+  @HttpCode(HttpStatus.OK)
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: ExpressRequest & { user: JwtPayload },
+  ) {
+    return this.requestsService.remove(id, req.user.sub, req.user.role);
   }
 }

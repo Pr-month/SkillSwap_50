@@ -10,6 +10,7 @@ import { Request } from './entities/request.entity';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { RequestStatus } from './request.enums';
+import { UserRole } from '../users/users.enums';
 
 @Injectable()
 export class RequestService {
@@ -34,8 +35,32 @@ export class RequestService {
     return `This action updates a #${id} request`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} request`;
+  async remove(
+    requestId: number,
+    userId: number,
+    userRole: UserRole,
+  ): Promise<{ id: number }> {
+    const request = await this.requestsRepository.findOne({
+      where: { id: requestId },
+      relations: { sender: true },
+    });
+
+    if (!request) {
+      throw new NotFoundException(`Request with id ${requestId} not found`);
+    }
+
+    const isSender = request.sender.id === userId;
+    const isAdmin = userRole === UserRole.ADMIN;
+
+    if (!isSender && !isAdmin) {
+      throw new ForbiddenException(
+        'You can only delete requests you sent yourself',
+      );
+    }
+
+    const deleted = await this.requestsRepository.remove(request);
+
+    return { id: deleted.id };
   }
 
   findIncoming(userId: number): Promise<Request[]> {
