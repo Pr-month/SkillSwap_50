@@ -11,6 +11,7 @@ import { UsersModule } from './users/users.module';
 import { AllExceptionsFilter } from './common/filters/all-exception.filter';
 import { SkillsModule } from './skills/skills.module';
 import { FilesModule } from './files/files.module';
+import { CitiesModule } from './cities/cities.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { FilesModule } from './files/files.module';
     AuthModule,
     SkillsModule,
     FilesModule,
+    CitiesModule,
   ],
   controllers: [AppController],
   providers: [
