@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CitiesService } from './cities.service';
 import { CreateCityDto } from './dto/create-city.dto';
@@ -43,7 +44,7 @@ export class CitiesController {
   @Delete(':id')
   @UseGuards(AccessTokenGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.citiesService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.citiesService.remove(id);
   }
 }
