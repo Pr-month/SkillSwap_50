@@ -17,7 +17,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "seed:cities": "ts-node src/database/seeds/cities.seed.ts src/database/data/russian-cities.json",
     "test:e2e": "jest --config ./test/jest-e2e.json"
+
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
