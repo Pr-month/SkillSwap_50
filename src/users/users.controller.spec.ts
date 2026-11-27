@@ -1,12 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-
-jest.mock('../auth/access-token.guard', () => ({
-  AccessTokenGuard: class AccessTokenGuard {},
-}));
+import { City } from '../cities/entities/city.entity';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -18,7 +15,11 @@ describe('UsersController', () => {
         UsersService,
         {
           provide: getRepositoryToken(User),
-          useValue: { find: jest.fn().mockResolvedValue([]) },
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(City),
+          useValue: {},
         },
       ],
     }).compile();
