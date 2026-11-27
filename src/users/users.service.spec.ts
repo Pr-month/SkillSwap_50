@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from './users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
+import { City } from '../cities/entities/city.entity';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -12,7 +13,11 @@ describe('UsersService', () => {
         UsersService,
         {
           provide: getRepositoryToken(User),
-          useValue: { find: jest.fn().mockResolvedValue([]) },
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(City),
+          useValue: {},
         },
       ],
     }).compile();
