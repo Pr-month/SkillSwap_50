@@ -2,8 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { UpdateCategoryDto } from './dto/update-categories.dto';
+import { CategoryResponseDto } from './dto/category-response.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -11,6 +12,16 @@ export class CategoriesService {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
   ) {}
+
+  /** Возвращает родителей и их подкатегории по ID, без загрузки навыков. */
+  findAll(): Promise<CategoryResponseDto[]> {
+    return this.categoryRepository.find({
+      where: { parent: IsNull() },
+      relations: { children: true },
+      select: { id: true, name: true, children: { id: true, name: true } },
+      order: { id: 'ASC', children: { id: 'ASC' } },
+    });
+  }
 
   async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
     const { name, parentId } = createCategoryDto;

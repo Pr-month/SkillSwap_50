@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   ParseIntPipe,
   Patch,
@@ -14,10 +15,17 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UserRole } from '../users/users.enums';
 import { UpdateCategoryDto } from './dto/update-categories.dto';
+import { CategoryResponseDto } from './dto/category-response.dto';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
+
+  /** Возвращает публичный список родительских категорий с подкатегориями. */
+  @Get()
+  findAll(): Promise<CategoryResponseDto[]> {
+    return this.categoriesService.findAll();
+  }
 
   @Post()
   @UseGuards(AccessTokenGuard, RolesGuard)
