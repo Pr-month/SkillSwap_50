@@ -1,7 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Request } from './entities/request.entity';
+import { CreateRequestDto } from './dto/create-request.dto';
+import { UpdateRequestDto } from './dto/update-request.dto';
 import { RequestStatus } from './request.enums';
 
 @Injectable()
@@ -59,5 +66,40 @@ export class RequestService {
       },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async updateStatus(
+    userId: number,
+    requestId: number,
+    status: RequestStatus,
+  ): Promise<Request> {
+    const request = await this.requestsRepository.findOne({
+      where: { id: requestId },
+      relations: {
+        sender: true,
+        receiver: true,
+        offeredSkill: true,
+        requestedSkill: true,
+      },
+    });
+
+    if (!request) {
+      throw new NotFoundException(`Request with id ${requestId} not found`);
+    }
+
+    if (request.receiver.id !== userId) {
+      throw new ForbiddenException('You can only update incoming requests');
+    }
+
+    if (request.status !== RequestStatus.PENDING) {
+      throw new BadRequestException(
+        'Only pending requests can be accepted or rejected',
+      );
+    }
+
+    request.status = status;
+    request.isRead = true;
+
+    return this.requestsRepository.save(request);
   }
 }
