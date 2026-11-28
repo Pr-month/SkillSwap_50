@@ -3,6 +3,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
 import { Repository } from 'typeorm';
+import { UpdateCategoryDto } from './dto/update-categories.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -25,5 +26,20 @@ export class CategoriesService {
 
     const newCategory = this.categoryRepository.create({ name, parent });
     return this.categoryRepository.save(newCategory);
+  }
+
+  async update(
+    id: number,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<Category> {
+    const category = await this.categoryRepository.findOneBy({ id });
+    if (!category) {
+      throw new NotFoundException('Категория не найдена');
+    }
+
+    if (updateCategoryDto.name !== undefined) {
+      category.name = updateCategoryDto.name;
+    }
+    return this.categoryRepository.save(category);
   }
 }
