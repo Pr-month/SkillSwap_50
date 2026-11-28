@@ -7,6 +7,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Request } from './entities/request.entity';
+import { User } from '../users/entities/user.entity';
+import { Skill } from '../skills/entities/skill.entity';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { RequestStatus } from './request.enums';
@@ -17,10 +19,55 @@ export class RequestService {
   constructor(
     @InjectRepository(Request)
     private readonly requestsRepository: Repository<Request>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+    @InjectRepository(Skill)
+    private readonly skillsRepository: Repository<Skill>,
   ) {}
 
-  create(createRequestDto: CreateRequestDto) {
-    return 'This action adds a new request';
+  async create(userId: number, dto: CreateRequestDto): Promise<Request> {
+    if (dto.offeredSkillId === dto.requestedSkillId) {
+      throw new BadRequestException(
+        'Offered and requested skills must be different',
+      );
+    }
+
+    const [offeredSkill, requestedSkill] = await Promise.all([
+      this.skillsRepository.findOne({
+        where: { id: dto.offeredSkillId },
+        relations: { owner: true },
+      }),
+      this.skillsRepository.findOne({
+        where: { id: dto.requestedSkillId },
+        relations: { owner: true },
+      }),
+    ]);
+
+    if (!offeredSkill) {
+      throw new NotFoundException('Offered skill not found');
+    }
+    if (!requestedSkill) {
+      throw new NotFoundException('Requested skill not found');
+    }
+
+    if (offeredSkill.owner.id !== userId) {
+      throw new ForbiddenException('You can only offer your own skill');
+    }
+
+    const receiver = requestedSkill.owner;
+
+    if (receiver.id === userId) {
+      throw new BadRequestException('Cannot send request to yourself');
+    }
+
+    const request = this.requestsRepository.create({
+      sender: { id: userId },
+      receiver,
+      offeredSkill,
+      requestedSkill,
+    });
+
+    return this.requestsRepository.save(request);
   }
 
   findAll() {

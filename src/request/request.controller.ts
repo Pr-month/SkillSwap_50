@@ -24,8 +24,12 @@ export class RequestController {
   constructor(private readonly requestsService: RequestService) {}
 
   @Post()
-  create(@Body() createRequestDto: CreateRequestDto) {
-    return this.requestsService.create(createRequestDto);
+  @UseGuards(AccessTokenGuard)
+  create(
+    @Body() dto: CreateRequestDto,
+    @Req() req: ExpressRequest & { user: JwtPayload },
+  ) {
+    return this.requestsService.create(req.user.sub, dto);
   }
 
   @Get()
