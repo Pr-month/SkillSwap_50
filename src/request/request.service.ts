@@ -45,4 +45,19 @@ export class RequestService {
       order: { createdAt: 'DESC' },
     });
   }
+
+  findOutgoing(userId: number): Promise<Request[]> {
+    return this.requestsRepository.find({
+      where: {
+        sender: { id: userId },
+        status: In([RequestStatus.PENDING, RequestStatus.IN_PROGRESS]),
+      },
+      relations: {
+        receiver: true,
+        offeredSkill: true,
+        requestedSkill: true,
+      },
+      order: { createdAt: 'DESC' },
+    });
+  }
 }
