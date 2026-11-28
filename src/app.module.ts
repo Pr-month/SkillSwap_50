@@ -12,6 +12,8 @@ import { AllExceptionsFilter } from './common/filters/all-exception.filter';
 import { SkillsModule } from './skills/skills.module';
 import { FilesModule } from './files/files.module';
 import { CategoriesModule } from './categories/categories.module';
+import { RequestModule } from './request/request.module';
+import { CitiesModule } from './cities/cities.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { CategoriesModule } from './categories/categories.module';
     SkillsModule,
     FilesModule,
     CategoriesModule,
+    RequestModule,
+    CitiesModule,
   ],
   controllers: [AppController],
   providers: [
