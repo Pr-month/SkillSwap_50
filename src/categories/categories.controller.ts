@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Param,
   ParseIntPipe,
   Patch,
@@ -13,7 +14,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UserRole } from '../users/users.enums';
-import { UpdateCategoryDto } from './dto/update-categories.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Controller('categories')
 export class CategoriesController {
@@ -26,7 +27,7 @@ export class CategoriesController {
     return this.categoriesService.create(dto);
   }
 
-  @Patch()
+  @Patch(':id')
   @UseGuards(AccessTokenGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   update(
@@ -34,5 +35,12 @@ export class CategoriesController {
     @Body() dto: UpdateCategoryDto,
   ) {
     return this.categoriesService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  remove(@Param('id', ParseIntPipe) id: number): Promise<{ id: number }> {
+    return this.categoriesService.remove(id);
   }
 }
