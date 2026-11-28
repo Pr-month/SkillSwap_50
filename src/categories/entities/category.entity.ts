@@ -26,4 +26,12 @@ export class Category {
 
   @OneToMany(() => Skill, (skill) => skill.category)
   skills!: Skill[];
+
+  @ManyToOne(() => Category, (category) => category.children, {
+    nullable: true,
+  })
+  parent!: Category | null;
+
+  @OneToMany(() => Category, (category) => category.parent)
+  children!: Category[];
 }

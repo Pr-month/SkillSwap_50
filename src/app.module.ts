@@ -11,6 +11,7 @@ import { UsersModule } from './users/users.module';
 import { AllExceptionsFilter } from './common/filters/all-exception.filter';
 import { SkillsModule } from './skills/skills.module';
 import { FilesModule } from './files/files.module';
+import { CategoriesModule } from './categories/categories.module';
 import { RequestModule } from './request/request.module';
 import { CitiesModule } from './cities/cities.module';
 
@@ -28,6 +29,7 @@ import { CitiesModule } from './cities/cities.module';
     AuthModule,
     SkillsModule,
     FilesModule,
+    CategoriesModule,
     RequestModule,
     CitiesModule,
   ],
