@@ -1,6 +1,8 @@
 import { Exclude } from 'class-transformer';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { UserGender, UserRole } from '../users.enums';
+import { City } from '../../cities/entities/city.entity';
+import { ManyToOne } from 'typeorm';
 import { Request } from '../../request/entities/request.entity';
 
 @Entity('users')
@@ -24,8 +26,14 @@ export class User {
   @Column({ type: 'date', nullable: true })
   birthdate!: Date | null;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  city!: string | null;
+  // @Column({ type: 'varchar', length: 100, nullable: true })
+  // city!: string | null;
+
+  @ManyToOne(() => City, (city) => city.users, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  city!: City | null;
 
   @Column({ type: 'enum', enum: UserGender, nullable: true })
   gender!: UserGender | null;
